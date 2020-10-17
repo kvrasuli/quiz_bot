@@ -10,7 +10,4 @@ questions = dict()
 for index, question in enumerate(questions_from_file):
     question = question.lstrip()
     if question.startswith('Вопрос'):
-        questions[question] = ''
-
-
-pprint.pprint(questions)
+        questions[question] = questions_from_file[index + 1]
