@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import telegram
 import os
 
 
@@ -17,7 +18,9 @@ def unpack_questions():
 
 
 def echo(update, context):
-    update.message.reply_text(update.message.text)
+    custom_keyboard = [['Новый вопрос', 'Сдаться'],['Мой счет']]
+    reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
+    update.message.reply_text(update.message.text, reply_markup=reply_markup)
 
 
 def run_bot(token):
@@ -30,7 +33,7 @@ def run_bot(token):
 def main():
     load_dotenv()
     telegram_token = os.getenv('TELEGRAM_TOKEN')
-    unpack_questions()
+    # unpack_questions()
     run_bot(telegram_token)
 
 
