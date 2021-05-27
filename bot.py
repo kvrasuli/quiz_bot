@@ -1,10 +1,20 @@
 from dotenv import load_dotenv
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 import telegram
 import redis
 import os
 import random
+from enum import Enum
 from functools import partial
+
+
+custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
+reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
+
+
+class State(Enum):
+    QUESTION = 1
+    ANSWER = 2
 
 
 def unpack_questions():
@@ -19,29 +29,49 @@ def unpack_questions():
     return questions
 
 
-def echo(update, context, questions, db):
-    custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
-    reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
+def handle_new_question_request(update, context, questions, db):
     if update.message.text == 'Новый вопрос':
         quiz_question = random.choice(list(questions.keys()))
         db.set(update.effective_chat.id, quiz_question)  
         update.message.reply_text(quiz_question, reply_markup=reply_markup)
-    if update.message.text not in ['Новый вопрос', 'Сдаться', 'Мой счет']:
-        restored_question = db.get(update.effective_chat.id).decode()
-        if update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
-            update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»')
-        else:
-            update.message.reply_text('Неправильно… Попробуешь ещё раз')
+    return State.ANSWER
 
+
+def handle_solution_attempt(update, context, questions, db):
+    restored_question = db.get(update.effective_chat.id).decode()
+    if update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
+        update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».')
+        return State.QUESTION
+    else:
+        update.message.reply_text('Неправильно… Попробуешь ещё раз?')
+        return State.ANSWER
+
+
+def start(update, context):
+    update.message.reply_text('Приветствую! Для начала нажми "Новый вопрос".', reply_markup=reply_markup)
+    return State.QUESTION
+
+
+def cancel(update, context):
+    update.message.reply_text('Алибидерчи!', reply_markup=telegram.ReplyKeyboardRemove())
+    return ConversationHandler.END
 
 
 def run_bot(token, redis_endpoint, redis_port, redis_password):
     questions = unpack_questions()
     bot_db = redis.Redis(host=redis_endpoint, port=redis_port, password=redis_password, db=0)
     updater = Updater(token, use_context=True)
-    updater.dispatcher.add_handler(
-        MessageHandler(Filters.text, partial(echo, questions=questions, db=bot_db))
+    dp = updater.dispatcher
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+        states={
+            State.QUESTION: [MessageHandler(Filters.text, partial(handle_new_question_request, questions=questions, db=bot_db))],
+            State.ANSWER: [MessageHandler(Filters.text & ~Filters.command, partial(handle_solution_attempt, questions=questions, db=bot_db))],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+
     )
+    dp.add_handler(conv_handler)
     updater.start_polling()
     updater.idle()
 
