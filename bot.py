@@ -15,7 +15,7 @@ def unpack_questions():
     for index, question in enumerate(questions_from_file):
         question = question.lstrip()
         if question.startswith('Вопрос'):
-            questions[question] = questions_from_file[index + 1]
+            questions[question] = questions_from_file[index + 1].lstrip('Ответ:\n')
     return questions
 
 
@@ -26,6 +26,13 @@ def echo(update, context, questions, db):
         quiz_question = random.choice(list(questions.keys()))
         db.set(update.effective_chat.id, quiz_question)  
         update.message.reply_text(quiz_question, reply_markup=reply_markup)
+    if update.message.text not in ['Новый вопрос', 'Сдаться', 'Мой счет']:
+        restored_question = db.get(update.effective_chat.id).decode()
+        if update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
+            update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»')
+        else:
+            update.message.reply_text('Неправильно… Попробуешь ещё раз')
+
 
 
 def run_bot(token, redis_endpoint, redis_port, redis_password):
