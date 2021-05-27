@@ -19,12 +19,13 @@ def unpack_questions():
     return questions
 
 
-def echo(update, context, questions):
+def echo(update, context, questions, db):
     custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
     reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
     if update.message.text == 'Новый вопрос':
-        answer = random.choice(list(questions.keys()))
-        update.message.reply_text(answer, reply_markup=reply_markup)
+        quiz_question = random.choice(list(questions.keys()))
+        db.set(update.effective_chat.id, quiz_question)  
+        update.message.reply_text(quiz_question, reply_markup=reply_markup)
 
 
 def run_bot(token, redis_endpoint, redis_port, redis_password):
