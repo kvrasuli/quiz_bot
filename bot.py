@@ -21,8 +21,8 @@ class State(Enum):
     RESIGN = 3
 
 
-def unpack_questions():
-    with open('1vs1200.txt', 'r', encoding='koi8-r') as file:
+def unpack_questions(path_to_questions):
+    with open(path_to_questions, 'r', encoding='koi8-r') as file:
         quiz_content = file.read()
     questions_from_file = quiz_content.split('\n\n')
     questions = dict()
@@ -79,8 +79,7 @@ def cancel(update, context):
     return ConversationHandler.END
 
 
-def run_bot(token, redis_endpoint, redis_port, redis_password):
-    questions = unpack_questions()
+def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
     bot_db = redis.Redis(host=redis_endpoint, port=redis_port, password=redis_password, db=0)
     updater = Updater(token, use_context=True)
     dp = updater.dispatcher
@@ -106,8 +105,10 @@ def main():
     telegram_token = os.getenv('TELEGRAM_TOKEN')
     redis_endpoint = os.getenv('REDIS_ENDPOINT')
     redis_port = os.getenv('REDIS_PORT')
-    redis_password = os.getenv('REDIS_PASSWORD')   
-    run_bot(telegram_token, redis_endpoint, redis_port, redis_password)
+    redis_password = os.getenv('REDIS_PASSWORD') 
+    path_to_questions = os.getenv('PATH_TO_QUESTIONS')
+    questions = unpack_questions(path_to_questions)  
+    run_bot(telegram_token, redis_endpoint, redis_port, redis_password, questions)
 
 
 if __name__ == '__main__':
