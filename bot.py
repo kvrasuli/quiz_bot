@@ -15,6 +15,7 @@ reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
 class State(Enum):
     QUESTION = 1
     ANSWER = 2
+    RESIGN = 3
 
 
 def unpack_questions():
@@ -39,12 +40,20 @@ def handle_new_question_request(update, context, questions, db):
 
 def handle_solution_attempt(update, context, questions, db):
     restored_question = db.get(update.effective_chat.id).decode()
-    if update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
+    if update.message.text == 'Сдаться':
+        return State.RESIGN
+    elif update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
         update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».')
         return State.QUESTION
     else:
         update.message.reply_text('Неправильно… Попробуешь ещё раз?')
         return State.ANSWER
+
+
+def resign(update, context, questions, db):
+    restored_question = db.get(update.effective_chat.id).decode()
+    update.message.reply_text(f"Правильный ответ - {questions[restored_question].replace(' (', '.').split('.')[0]}")
+    return State.QUESTION
 
 
 def start(update, context):
@@ -67,6 +76,7 @@ def run_bot(token, redis_endpoint, redis_port, redis_password):
         states={
             State.QUESTION: [MessageHandler(Filters.text, partial(handle_new_question_request, questions=questions, db=bot_db))],
             State.ANSWER: [MessageHandler(Filters.text & ~Filters.command, partial(handle_solution_attempt, questions=questions, db=bot_db))],
+            State.RESIGN: [MessageHandler(Filters.text, partial(resign, questions=questions, db=bot_db))],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
 
