@@ -4,9 +4,12 @@ import telegram
 import redis
 import os
 import random
+import logging
 from enum import Enum
 from functools import partial
 
+logger = logging.getLogger('tg_quiz_bot')
+logging.basicConfig(level=logging.INFO)
 
 custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
 reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
@@ -27,6 +30,7 @@ def unpack_questions():
         question = question.lstrip()
         if question.startswith('Вопрос'):
             questions[question] = questions_from_file[index + 1].lstrip('Ответ:\n')
+    logger.info('Questions have been unpacked!')
     return questions
 
 
@@ -39,29 +43,38 @@ def handle_new_question_request(update, context, questions, db):
 
 
 def handle_solution_attempt(update, context, questions, db):
+    user = update.message.from_user
     restored_question = db.get(update.effective_chat.id).decode()
     if update.message.text == 'Сдаться':
         return State.RESIGN
     elif update.message.text == questions[restored_question].replace(' (', '.').split('.')[0]:
+        logger.info(f'User {user.id} answered correctly!')
         update.message.reply_text('Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос».')
         return State.QUESTION
     else:
+        logger.info(f'User {user.id} was wrong!')
         update.message.reply_text('Неправильно… Попробуешь ещё раз?')
         return State.ANSWER
 
 
 def resign(update, context, questions, db):
+    user = update.message.from_user
+    logger.info(f'User {user.id} resigns!')
     restored_question = db.get(update.effective_chat.id).decode()
     update.message.reply_text(f"Правильный ответ - {questions[restored_question].replace(' (', '.').split('.')[0]}")
     return State.QUESTION
 
 
 def start(update, context):
+    user = update.message.from_user
+    logger.info(f'User {user.id} started the quiz.')
     update.message.reply_text('Приветствую! Для начала нажми "Новый вопрос".', reply_markup=reply_markup)
     return State.QUESTION
 
 
 def cancel(update, context):
+    user = update.message.from_user
+    logger.info(f'User {user.id} cancelled the quiz.')
     update.message.reply_text('Алибидерчи!', reply_markup=telegram.ReplyKeyboardRemove())
     return ConversationHandler.END
 
@@ -82,6 +95,8 @@ def run_bot(token, redis_endpoint, redis_port, redis_password):
 
     )
     dp.add_handler(conv_handler)
+
+    logger.info(f'The bot is about to start!')
     updater.start_polling()
     updater.idle()
 
