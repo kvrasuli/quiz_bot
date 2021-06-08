@@ -1,6 +1,6 @@
 # Quiz vk & telegram bots
 
-There are a telegram and vk support bots. Telegram bot is deployed [here]().
+There are a telegram and vk support bots. Telegram bot is deployed [here](https://t.me/CyrQuizBot).
 
 ### How to use
 
@@ -11,13 +11,17 @@ TELEGRAM_TOKEN='your support bot token'
 VK_GROUP_TOKEN='your vk group token'
 REDIS_ENDPOINT='address of redis db server'
 REDIS_PORT='redis db port'
-REDIS_PASSWORD='resid password'
+REDIS_PASSWORD='redis password'
 PATH_TO_QUESTIONS='path to file with quiz questions'
 ```
+### How to add questions to the quiz
+
+You'll have to create a txt file like a "1vs1200.txt" which is given here in repo as an example.
+
 ### How to install dependencies
 
 Python3 should be already installed. 
-Then use `pip` (or `pip3`, if there is a conflict with Python2) to install dependencies:
+Then use `pip` to install dependencies:
 ```
 pip3 install -r requirements.txt
 ```
@@ -34,9 +38,6 @@ python3 vk_bot.py
 
 - Procfile for heroku deploying is created. Use this guide to deploy:
  https://devcenter.heroku.com/articles/github-integration
-
-- Add this addition buildpack in heroku app settings:
-https://github.com/gerywahyunugraha/heroku-google-application-credentials-buildpack
 
 - Add your env variables in heroku app settings.
 
