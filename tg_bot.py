@@ -20,7 +20,6 @@ reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
 class State(Enum):
     QUESTION = 1
     ANSWER = 2
-    RESIGN = 3
 
 
 def unpack_questions(path_to_questions):
@@ -50,7 +49,11 @@ def handle_solution_attempt(update, context, questions, db):
     restored_question = db.get(update.effective_chat.id).decode()
     correct_answer = questions[restored_question].replace(' (', '.')
     if update.message.text == 'Сдаться':
-        return State.RESIGN
+        logger.info(f'User {user.id} resigns!')
+        update.message.reply_text(
+            f"Правильный ответ - {correct_answer.split('.')[0]}"
+        )
+        return State.QUESTION
     elif update.message.text == correct_answer.split('.')[0]:
         logger.info(f'User {user.id} answered correctly!')
         update.message.reply_text(
@@ -61,17 +64,6 @@ def handle_solution_attempt(update, context, questions, db):
         logger.info(f'User {user.id} was wrong!')
         update.message.reply_text('Неправильно… Попробуешь ещё раз?')
         return State.ANSWER
-
-
-def resign(update, context, questions, db):
-    user = update.message.from_user
-    logger.info(f'User {user.id} resigns!')
-    restored_question = db.get(update.effective_chat.id).decode()
-    answer = questions[restored_question].replace(' (', '.').split('.')[0]
-    update.message.reply_text(
-        f"Правильный ответ - {answer}"
-    )
-    return State.QUESTION
 
 
 def start(update, context):
@@ -112,12 +104,8 @@ def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
                     handle_solution_attempt,
                     questions=questions, db=bot_db)
             )],
-            State.RESIGN: [MessageHandler(
-                Filters.text, partial(resign, questions=questions, db=bot_db)
-            )],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
-
     )
     dp.add_handler(conv_handler)
 
