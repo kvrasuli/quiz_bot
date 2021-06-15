@@ -12,11 +12,11 @@ VK_GROUP_TOKEN='your vk group token'
 REDIS_ENDPOINT='address of redis db server'
 REDIS_PORT='redis db port'
 REDIS_PASSWORD='redis password'
-PATH_TO_QUESTIONS='path to file with quiz questions'
+PATH_TO_QUESTIONS='path to a folder with quiz questions files'
 ```
 ### How to add questions to the quiz
 
-You'll have to create a txt file like a "1vs1200.txt" which is given here in repo as an example.
+You'll have to create a folder with txt files like a "1vs1200.txt" which is given here in repo as an example.
 
 ### How to install dependencies
 
@@ -33,6 +33,10 @@ python3 tg_bot.py
 To run the vk bot launch vk_bot.py script:
 ```
 python3 vk_bot.py
+```
+Unpack questions from questions/ folder:
+```
+python3 unpacker.py
 ```
 ### Deploy
 
