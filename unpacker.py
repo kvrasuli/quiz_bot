@@ -1,6 +1,3 @@
-import logging
-logger = logging.getLogger('unpacker_logger')
-
 def unpack_questions(path_to_questions):
     with open(path_to_questions, 'r', encoding='koi8-r') as file:
         quiz_content = file.read()
@@ -11,5 +8,4 @@ def unpack_questions(path_to_questions):
         if question.startswith('Вопрос'):
             answer = questions_from_file[index + 1].lstrip('Ответ:\n')
             unpacked_questions[question] = answer
-    logger.info('Questions have been unpacked!')
     return unpacked_questions

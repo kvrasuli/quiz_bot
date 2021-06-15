@@ -9,7 +9,8 @@ import random
 import redis
 import logging
 
-logger = logging.getLogger('vk_logger')
+logger = logging.getLogger(__file__)
+
 
 def make_keyboard():
     keyboard = VkKeyboard(one_time=True)
@@ -85,6 +86,7 @@ def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     load_dotenv()
     vk_group_token = os.getenv('VK_TOKEN')
     redis_endpoint = os.getenv('REDIS_ENDPOINT')
@@ -92,6 +94,7 @@ def main():
     redis_password = os.getenv('REDIS_PASSWORD')
     path_to_questions = os.getenv('PATH_TO_QUESTIONS')
     questions = unpack_questions(path_to_questions)
+    logger.info('Questions have been unpacked!')
     run_bot(
         vk_group_token, redis_endpoint, redis_port, redis_password, questions
     )

@@ -11,8 +11,7 @@ from unpacker import unpack_questions
 from enum import Enum
 from functools import partial
 
-logger = logging.getLogger('tg_quiz_bot')
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 CUSTOM_KEYBOARD = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
 REPLY_MARKUP = telegram.ReplyKeyboardMarkup(CUSTOM_KEYBOARD)
@@ -102,6 +101,7 @@ def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
 
 
 def main():
+    logging.basicConfig(level=logging.INFO)
     load_dotenv()
     telegram_token = os.getenv('TELEGRAM_TOKEN')
     redis_endpoint = os.getenv('REDIS_ENDPOINT')
@@ -109,6 +109,7 @@ def main():
     redis_password = os.getenv('REDIS_PASSWORD')
     path_to_questions = os.getenv('PATH_TO_QUESTIONS')
     questions = unpack_questions(path_to_questions)
+    logger.info('Questions have been unpacked!')
     run_bot(
         telegram_token, redis_endpoint, redis_port, redis_password, questions
     )
