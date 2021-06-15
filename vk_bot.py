@@ -11,14 +11,16 @@ import logging
 
 logger = logging.getLogger('vk_logger')
 
-keyboard = VkKeyboard(one_time=True)
-keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
-keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
-keyboard.add_line()
-keyboard.add_button('Мой счёт', color=VkKeyboardColor.SECONDARY)
+def make_keyboard():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
+    keyboard.add_line()
+    keyboard.add_button('Мой счёт', color=VkKeyboardColor.SECONDARY)
+    return keyboard
 
 
-def handle_new_question_request(event, vk_api, questions, db):
+def handle_new_question_request(event, vk_api, questions, db, keyboard):
     quiz_question = random.choice(list(questions.keys()))
     db.set(event.user_id, quiz_question)
     vk_api.messages.send(
@@ -29,7 +31,7 @@ def handle_new_question_request(event, vk_api, questions, db):
     )
 
 
-def handle_solution_attempt(event, vk_api, questions, db):
+def handle_solution_attempt(event, vk_api, questions, db, keyboard):
     restored_question = db.get(event.user_id).decode()
     correct_answer = questions[restored_question].replace(' (', '.')
     if event.text == correct_answer.split('.')[0]:
@@ -50,7 +52,7 @@ def handle_solution_attempt(event, vk_api, questions, db):
         )
 
 
-def resign(event, vk_api, questions, db):
+def resign(event, vk_api, questions, db, keyboard):
     logger.info(f'User {event.user_id} resigns!')
     restored_question = db.get(event.user_id).decode()
     answer = questions[restored_question].replace(' (', '.').split('.')[0]
@@ -69,16 +71,17 @@ def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
     vk_session = vk_api.VkApi(token=token)
     vk_api_ = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
+    keyboard = make_keyboard()
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text == 'Новый вопрос':
-                handle_new_question_request(event, vk_api_, questions, bot_db)
+                handle_new_question_request(event, vk_api_, questions, bot_db, keyboard)
             elif event.text == 'Сдаться':
-                resign(event, vk_api_, questions, bot_db)
+                resign(event, vk_api_, questions, bot_db, keyboard)
             elif event.text == 'Мой счет':
                 pass
             else:
-                handle_solution_attempt(event, vk_api_, questions, bot_db)
+                handle_solution_attempt(event, vk_api_, questions, bot_db, keyboard)
 
 
 def main():
