@@ -14,8 +14,8 @@ from functools import partial
 logger = logging.getLogger('tg_quiz_bot')
 logging.basicConfig(level=logging.INFO)
 
-custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
-reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
+CUSTOM_KEYBOARD = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
+REPLY_MARKUP = telegram.ReplyKeyboardMarkup(CUSTOM_KEYBOARD)
 
 
 class State(Enum):
@@ -27,7 +27,7 @@ def handle_new_question_request(update, context, questions, db):
     if update.message.text == 'Новый вопрос':
         quiz_question = random.choice(list(questions.keys()))
         db.set(update.effective_chat.id, quiz_question)
-        update.message.reply_text(quiz_question, reply_markup=reply_markup)
+        update.message.reply_text(quiz_question, reply_markup=REPLY_MARKUP)
     return State.ANSWER
 
 
@@ -58,7 +58,7 @@ def start(update, context):
     logger.info(f'User {user.id} started the quiz.')
     update.message.reply_text(
         'Приветствую! Для начала нажми "Новый вопрос".',
-        reply_markup=reply_markup
+        reply_markup=REPLY_MARKUP
     )
     return State.QUESTION
 
