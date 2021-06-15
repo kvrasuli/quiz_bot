@@ -23,7 +23,7 @@ def make_keyboard():
 
 def handle_new_question_request(event, vk_api, questions, db, keyboard):
     quiz_question = random.choice(list(questions.keys()))
-    db.set(event.user_id, quiz_question)
+    db.set(event.user_id, questions[quiz_question])
     vk_api.messages.send(
         user_id=event.user_id,
         message=quiz_question,
@@ -33,8 +33,8 @@ def handle_new_question_request(event, vk_api, questions, db, keyboard):
 
 
 def handle_solution_attempt(event, vk_api, questions, db, keyboard):
-    restored_question = db.get(event.user_id).decode()
-    correct_answer = questions[restored_question].replace(' (', '.')
+    restored_answer = db.get(event.user_id).decode()
+    correct_answer = restored_answer.replace(' (', '.')
     if event.text == correct_answer.split('.')[0]:
         logger.info(f'User {event.user_id} answered correctly!')
         vk_api.messages.send(

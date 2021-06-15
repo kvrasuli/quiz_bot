@@ -25,15 +25,15 @@ class State(Enum):
 def handle_new_question_request(update, context, questions, db):
     if update.message.text == 'Новый вопрос':
         quiz_question = random.choice(list(questions.keys()))
-        db.set(update.effective_chat.id, quiz_question)
+        db.set(update.effective_chat.id, questions[quiz_question])
         update.message.reply_text(quiz_question, reply_markup=REPLY_MARKUP)
     return State.ANSWER
 
 
 def handle_solution_attempt(update, context, questions, db):
     user = update.message.from_user
-    restored_question = db.get(update.effective_chat.id).decode()
-    correct_answer = questions[restored_question].replace(' (', '.')
+    restored_answer = db.get(update.effective_chat.id).decode()
+    correct_answer = restored_answer.replace(' (', '.')
     if update.message.text == 'Сдаться':
         logger.info(f'User {user.id} resigns!')
         update.message.reply_text(
