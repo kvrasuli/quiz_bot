@@ -7,6 +7,7 @@ import redis
 import os
 import random
 import logging
+from unpacker import unpack_questions
 from enum import Enum
 from functools import partial
 
@@ -20,20 +21,6 @@ reply_markup = telegram.ReplyKeyboardMarkup(custom_keyboard)
 class State(Enum):
     QUESTION = 1
     ANSWER = 2
-
-
-def unpack_questions(path_to_questions):
-    with open(path_to_questions, 'r', encoding='koi8-r') as file:
-        quiz_content = file.read()
-    questions_from_file = quiz_content.split('\n\n')
-    questions = dict()
-    for index, question in enumerate(questions_from_file):
-        question = question.lstrip()
-        if question.startswith('Вопрос'):
-            answer = questions_from_file[index + 1].lstrip('Ответ:\n')
-            questions[question] = answer
-    logger.info('Questions have been unpacked!')
-    return questions
 
 
 def handle_new_question_request(update, context, questions, db):

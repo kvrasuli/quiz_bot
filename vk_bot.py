@@ -3,7 +3,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.utils import get_random_id
 from dotenv import load_dotenv
-from tg_bot import unpack_questions
+from unpacker import unpack_questions
 import os
 import random
 import redis
