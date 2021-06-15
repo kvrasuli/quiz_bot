@@ -66,7 +66,7 @@ def resign(event, vk_api, questions, db, keyboard):
 
 def run_bot(token, redis_endpoint, redis_port, redis_password, questions):
     bot_db = redis.Redis(
-        host=redis_endpoint, port=redis_port, password=redis_password, db=0
+        host=redis_endpoint, port=redis_port, password=redis_password, db=1
     )
     vk_session = vk_api.VkApi(token=token)
     vk_api_ = vk_session.get_api()
